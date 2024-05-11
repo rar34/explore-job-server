@@ -39,6 +39,14 @@ async function run() {
             res.send(result);
         })
 
+        // add job into db
+        app.post("/jobs", async (req, res) => {
+            const newJob = req.body;
+            // console.log(newJob)
+            const result = await jobsCollection.insertOne(newJob)
+            res.send(result)
+        })
+
         // get a single job for details
         app.get("/job/:id", async (req, res) => {
             const id = req.params.id;
@@ -47,9 +55,18 @@ async function run() {
             res.send(result)
         })
 
+        // get all job added by user
+        app.get("/jobs/:email", async (req, res) => {
+            const email = req.params.email;
+            const query = { email: email }
+            const result = await jobsCollection.find(query).toArray();
+            res.send(result)
+        })
+
         // save applied job
         app.post("/bid", async (req, res) => {
             const bidJob = req.body;
+            // console.log(bidJob)
             const result = await bidsCollection.insertOne(bidJob);
             res.send(result);
         })
