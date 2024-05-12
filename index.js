@@ -30,6 +30,28 @@ const client = new MongoClient(uri, {
     }
 });
 
+// middlewares
+const logger = (req, res, next) => {
+    console.log('log info: ', req.method, req.url)
+    next()
+}
+
+const verifyToken = (req, res, next) => {
+    const token = req?.cookies?.token;
+    // console.log('token in the middleware', token)
+    if (!token) {
+        return res.status(401).send({ message: 'unauthorized access' })
+    }
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+        if (err) {
+            return res.status(401).send({ message: 'unauthorized access' })
+        }
+        req.user = decoded;
+        next();
+    })
+    // next();
+}
+
 async function run() {
     try {
         const jobsCollection = client.db('exploreJobDb').collection('jobs');
@@ -50,9 +72,15 @@ async function run() {
                     secure: true,
                     sameSite: 'none'
                 })
-                .send({ token })
+                .send({ success: true })
 
 
+        })
+
+        app.post('/logout', async (req, res) => {
+            const user = req.body;
+            console.log('logout', user)
+            res.clearCookie('token', { maxAge: 0 }).send({ success: true })
         })
 
 
@@ -80,6 +108,7 @@ async function run() {
         // get all job added by user
         app.get("/jobs/:email", async (req, res) => {
             const email = req.params.email;
+            // console.log("Token info", req.user)
             const query = { email: email }
             const result = await jobsCollection.find(query).toArray();
             res.send(result)
