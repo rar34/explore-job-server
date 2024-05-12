@@ -1,5 +1,7 @@
 const express = require('express');
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser')
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
 const app = express();
@@ -13,6 +15,7 @@ app.use(cors({
     optionsSuccessStatus: 200
 }))
 app.use(express.json())
+app.use(cookieParser())
 
 
 
@@ -33,6 +36,25 @@ async function run() {
         const bidsCollection = client.db('exploreJobDb').collection('bids');
         // Connect the client to the server	(optional starting in v4.7)
         // await client.connect();
+
+        // code for jwt
+        app.post("/jwt", async (req, res) => {
+            const user = req.body;
+            console.log(user)
+            const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' })
+
+
+            res
+                .cookie('token', token, {
+                    httpOnly: true,
+                    secure: true,
+                    sameSite: 'none'
+                })
+                .send({ token })
+
+
+        })
+
 
         app.get("/jobs", async (req, res) => {
             const result = await jobsCollection.find().toArray();
@@ -60,6 +82,13 @@ async function run() {
             const email = req.params.email;
             const query = { email: email }
             const result = await jobsCollection.find(query).toArray();
+            res.send(result)
+        })
+        // get all applied job applied by user
+        app.get("/appliedJobs/:email", async (req, res) => {
+            const email = req.params.email;
+            const query = { userEmail: email }
+            const result = await bidsCollection.find(query).toArray();
             res.send(result)
         })
 
