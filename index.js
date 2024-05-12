@@ -62,7 +62,7 @@ async function run() {
         // code for jwt
         app.post("/jwt", async (req, res) => {
             const user = req.body;
-            console.log(user)
+            // console.log(user)
             const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' })
 
 
@@ -105,10 +105,10 @@ async function run() {
             res.send(result)
         })
 
-        // get all job added by user
+        // get all job added by user - my job
         app.get("/jobs/:email", async (req, res) => {
             const email = req.params.email;
-            // console.log("Token info", req.user)
+            console.log("Token info", req.user)
             const query = { email: email }
             const result = await jobsCollection.find(query).toArray();
             res.send(result)
@@ -127,6 +127,14 @@ async function run() {
             // console.log(bidJob)
             const result = await bidsCollection.insertOne(bidJob);
             res.send(result);
+        })
+
+        // delete a job
+        app.delete("/job/:id", async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await jobsCollection.deleteOne(query)
+            res.send(result)
         })
 
 
