@@ -111,7 +111,7 @@ async function run() {
             res.send(result)
         })
         // get all applied job applied by user
-        app.get("/appliedJobs/:email", async (req, res) => {
+        app.get("/appliedJobs/:email", verifyToken, async (req, res) => {
             const email = req.params.email;
             const query = { userEmail: email }
             const result = await bidsCollection.find(query).toArray();
