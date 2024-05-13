@@ -31,10 +31,6 @@ const client = new MongoClient(uri, {
 });
 
 // middlewares
-const logger = (req, res, next) => {
-    console.log('log info: ', req.method, req.url)
-    next()
-}
 
 const verifyToken = (req, res, next) => {
     const token = req?.cookies?.token;
@@ -49,7 +45,6 @@ const verifyToken = (req, res, next) => {
         req.user = decoded;
         next();
     })
-    // next();
 }
 
 async function run() {
@@ -63,8 +58,7 @@ async function run() {
         app.post("/jwt", async (req, res) => {
             const user = req.body;
             // console.log(user)
-            const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' })
-
+            const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '7d' })
 
             res
                 .cookie('token', token, {
@@ -73,14 +67,12 @@ async function run() {
                     sameSite: 'none'
                 })
                 .send({ success: true })
-
-
         })
 
-        app.post('/logout', async (req, res) => {
+        app.post('/logout', (req, res) => {
             const user = req.body;
-            console.log('logout', user)
-            res.clearCookie('token', { maxAge: 0 }).send({ success: true })
+            // console.log('logout', user)
+            res.clearCookie('token', { maxAge: 0, sameSite: 'none', secure: true }).send({ success: true })
         })
 
 
@@ -106,9 +98,14 @@ async function run() {
         })
 
         // get all job added by user - my job
-        app.get("/jobs/:email", async (req, res) => {
+        app.get("/jobs/:email", verifyToken, async (req, res) => {
+            console.log(req.user)
+            const tokenEmail = req.user;
             const email = req.params.email;
-            console.log("Token info", req.user)
+            // if(tokenEmail !== email){
+            //     return res.status(403).send({ message: 'forbidden access' })
+            // }
+            console.log("Token info", req.cookies.token)
             const query = { email: email }
             const result = await jobsCollection.find(query).toArray();
             res.send(result)
@@ -133,7 +130,7 @@ async function run() {
         app.put("/jobs/:id", async (req, res) => {
             const id = req.params.id;
             const jobData = req.body;
-            console.log(jobData)
+            // console.log(jobData)
             const query = { _id: new ObjectId(id) }
             const options = { upsert: true };
             const updateDoc = {
