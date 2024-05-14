@@ -10,7 +10,7 @@ const port = process.env.PORT || 5000;
 
 
 app.use(cors({
-    origin: ['http://localhost:5173'],
+    origin: ['http://localhost:5173','https://explore-job.web.app'],
     credentials: true,
     optionsSuccessStatus: 200
 }))
@@ -121,11 +121,11 @@ async function run() {
         // save applied job
         app.post("/bid", async (req, res) => {
             const bidJob = req.body;
-
+            console.log(bidJob)
             const query = {
-                email: bidJob.email,
-                jobId: bidJob.jobId
+                userEmail: bidJob.email
             }
+            console.log(query)
 
             const alreadyApplied = await bidsCollection.findOne(query)
             if (alreadyApplied) {
