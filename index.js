@@ -125,7 +125,7 @@ async function run() {
             const query = {
                 userEmail: bidJob.email
             }
-            console.log(query)
+            // console.log(query)
 
             const alreadyApplied = await bidsCollection.findOne(query)
             if (alreadyApplied) {
@@ -133,6 +133,17 @@ async function run() {
             }
             // console.log(bidJob)
             const result = await bidsCollection.insertOne(bidJob);
+
+            // update bid count in job collection
+            const  updateDoc = {
+                $inc: {
+                    applicants: 1
+                }
+            }
+            const jobQuery = {_id: new ObjectId(bidJob.jobId)}
+            const updateApplicants = await jobsCollection.updateOne(jobQuery, updateDoc)
+            console.log(updateApplicants)
+
             res.send(result);
         })
 
