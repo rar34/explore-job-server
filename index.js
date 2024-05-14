@@ -10,7 +10,7 @@ const port = process.env.PORT || 5000;
 
 
 app.use(cors({
-    origin: ['http://localhost:5173','https://explore-job.web.app'],
+    origin: ['http://localhost:5173', 'https://explore-job.web.app'],
     credentials: true,
     optionsSuccessStatus: 200
 }))
@@ -99,20 +99,22 @@ async function run() {
 
         // get all job added by user - my job
         app.get("/jobs/:email", verifyToken, async (req, res) => {
-            console.log(req.user)
-            const tokenEmail = req.user;
+            const tokenEmail = req.user.email;
             const email = req.params.email;
-            // if(tokenEmail !== email){
-            //     return res.status(403).send({ message: 'forbidden access' })
-            // }
-            console.log("Token info", req.cookies.token)
+            if (tokenEmail !== email) {
+                return res.status(403).send({ message: 'forbidden access' })
+            }
             const query = { email: email }
             const result = await jobsCollection.find(query).toArray();
             res.send(result)
         })
         // get all applied job applied by user
         app.get("/appliedJobs/:email", verifyToken, async (req, res) => {
+            const tokenEmail = req.user.email;
             const email = req.params.email;
+            if (tokenEmail !== email) {
+                return res.status(403).send({ message: 'forbidden access' })
+            }
             const query = { userEmail: email }
             const result = await bidsCollection.find(query).toArray();
             res.send(result)
@@ -135,12 +137,12 @@ async function run() {
             const result = await bidsCollection.insertOne(bidJob);
 
             // update bid count in job collection
-            const  updateDoc = {
+            const updateDoc = {
                 $inc: {
                     applicants: 1
                 }
             }
-            const jobQuery = {_id: new ObjectId(bidJob.jobId)}
+            const jobQuery = { _id: new ObjectId(bidJob.jobId) }
             const updateApplicants = await jobsCollection.updateOne(jobQuery, updateDoc)
             console.log(updateApplicants)
 
