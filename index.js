@@ -125,7 +125,8 @@ async function run() {
             const bidJob = req.body;
             console.log(bidJob)
             const query = {
-                userEmail: bidJob.email
+                userEmail: bidJob.userEmail,
+                jobId: bidJob.jobId
             }
             // console.log(query)
 
