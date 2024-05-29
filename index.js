@@ -51,6 +51,7 @@ async function run() {
     try {
         const jobsCollection = client.db('exploreJobDb').collection('jobs');
         const bidsCollection = client.db('exploreJobDb').collection('bids');
+        const blogsCollection = client.db('exploreJobDb').collection('blogs');
         // Connect the client to the server	(optional starting in v4.7)
         // await client.connect();
 
@@ -172,6 +173,19 @@ async function run() {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) }
             const result = await jobsCollection.deleteOne(query)
+            res.send(result)
+        })
+
+        // blogs related apis
+        app.get("/blogs", async (req, res) => {
+            const result = await blogsCollection.find().toArray();
+            res.send(result);
+        })
+
+        app.post("/blogs", async (req, res) => {
+            const newBlog = req.body;
+            // console.log(newJob)
+            const result = await blogsCollection.insertOne(newBlog)
             res.send(result)
         })
 
